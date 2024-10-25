@@ -63,10 +63,22 @@ def run_code():
         # Set the language_id for Python3
         language_id = 71  # Python3
 
+        # Wrap the user code and tests into a main function
+        wrapped_code = f"""
+try:
+    {code}
+except AssertionError as e:
+    print("Test failed:", e)
+except Exception as e:
+    print("Error:", str(e))
+else:
+    print("All test cases passed!")
+"""
+
         # Prepare the payload for Judge0 API
         payload = {
             "language_id": language_id,
-            "source_code": code,
+            "source_code": wrapped_code,
             "stdin": "",  # Optional: pass input if needed
             "expected_output": ""  # Optional: use if you're comparing outputs
         }
@@ -84,11 +96,13 @@ def run_code():
             result_response = requests.get(result_url, headers=JUDGE0_HEADERS)
             result = result_response.json()
 
+            # Return the Judge0 result
             return jsonify(result)
         else:
             return jsonify({'error': 'Code execution failed'}), response.status_code
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
     
 @app.route('/problems', methods=['GET'])
 def get_all_problems():

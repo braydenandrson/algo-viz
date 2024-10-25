@@ -17,7 +17,6 @@ function App() {
   const [loading, setLoading] = useState(false); // Store loading state
   const dropdownRef = useRef(null);
 
-  // Fetch problems and set both problemList and filteredProblems
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -32,7 +31,6 @@ function App() {
     fetchProblems();
   }, []);
 
-  // Filter problems by difficulty
   useEffect(() => {
     let filtered = problemList;
 
@@ -43,7 +41,6 @@ function App() {
     setFilteredProblems(filtered);
   }, [difficultyFilter, problemList]);
 
-  // Fetch the selected problem data
   const fetchProblem = async () => {
     if (!selectedProblemTitle) {
       console.error('No problem selected');
@@ -62,30 +59,26 @@ function App() {
     }
   };
 
-  // Handle running the code by sending it to the backend
   const handleRunCode = async (code) => {
     setLoading(true);
     setSolutionOutput('');
+    
     try {
-      const response = await fetch('http://127.0.0.1:5000/run_code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code }),
-      });
+        const response = await fetch('http://127.0.0.1:5000/run_code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code }),
+        });
 
-      const data = await response.json();
-      if (data.error) {
-        setSolutionOutput(`Error: ${data.error}`);
-      } else {
-        setSolutionOutput(`Output:\n${data.stdout || 'No output'}\nErrors:\n${data.stderr || 'No errors'}`);
-      }
+        const data = await response.json();
+        setSolutionOutput(data.stdout || data.stderr || 'No output.');
     } catch (error) {
-      console.error("Error running code:", error);
-      setSolutionOutput('Error running code.');
+        console.error("Error running code:", error);
+        setSolutionOutput('Error running code.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -108,19 +101,19 @@ function App() {
 
       <div className="mb-6 relative" ref={dropdownRef}>
         <SearchBar
-          selectedProblemTitle={selectedProblemTitle} // Pass the selected problem title to SearchBar
+          selectedProblemTitle={selectedProblemTitle} 
           setShowDropdown={setShowDropdown}
           setSelectedProblemTitle={setSelectedProblemTitle}
         />
         <FilterComponent
           difficultyFilter={difficultyFilter}
-          setDifficultyFilter={setDifficultyFilter} // Pass difficulty filter state
+          setDifficultyFilter={setDifficultyFilter}
         />
         {showDropdown && (
           <ProblemDropdown
             filteredProblems={filteredProblems}
             setSelectedProblemTitle={setSelectedProblemTitle}
-            setShowDropdown={setShowDropdown} // Pass down to close dropdown
+            setShowDropdown={setShowDropdown}
           />
         )}
       </div>
@@ -128,11 +121,15 @@ function App() {
       <RunCodeButton fetchProblem={fetchProblem} />
 
       {problem && (
-        <div className="flex flex-grow">
-          {/* Problem box will resize along with the code editor */}
-          <ProblemDisplay problem={problem} />
-          <div className="flex-grow flex-shrink-0 ml-4">
-            <CodeEditor initialCode="# Write your Python3 code here" onRun={handleRunCode} />
+        <div className="flex flex-grow gap-4">
+          <div className="flex-1 bg-gray-900 p-4 rounded-lg overflow-y-auto">
+            {/* Problem Display */}
+            <ProblemDisplay problem={problem} />
+          </div>
+
+          <div className="flex-1 bg-gray-900 p-4 rounded-lg overflow-y-auto">
+            {/* Code Editor */}
+            <CodeEditor initialCode={undefined} onRun={handleRunCode} />
           </div>
         </div>
       )}
